@@ -1,9 +1,10 @@
-package com.example.smack2
+package com.example.smack2.Controller
 
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.example.smack2.R
 import kotlinx.android.synthetic.main.activity_create_user.*
 import java.util.*
 
