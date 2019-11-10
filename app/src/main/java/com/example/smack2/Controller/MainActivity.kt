@@ -19,14 +19,22 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.example.smack2.Model.Channel
 import com.example.smack2.R
 import com.example.smack2.Services.AuthService
+import com.example.smack2.Services.MessageService
 import com.example.smack2.Services.UserDataService
 import com.example.smack2.Utilities.BROADCAST_USER_DATA_CHANGE
+import com.example.smack2.Utilities.SOCKET_URL
 import com.google.android.material.navigation.NavigationView
+import io.socket.client.IO
+import io.socket.emitter.Emitter
 import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : AppCompatActivity() {
+
+
+    val socket = IO.socket(SOCKET_URL)
 
     private lateinit var appBarConfiguration: AppBarConfiguration
 
@@ -36,7 +44,8 @@ class MainActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        hideKeyboard()
+        socket.connect()
+        socket.on("channelCreated", onNewChannel)
 
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
@@ -56,15 +65,28 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+
+    }
+
+
+    override fun onResume() {
+
+
         LocalBroadcastManager.getInstance(this).registerReceiver(
             userDataChangeReceiver, IntentFilter(
                 BROADCAST_USER_DATA_CHANGE
             )
         )
-
+        super.onResume()
 
     }
 
+
+    override fun onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(userDataChangeReceiver)
+        socket.disconnect()
+        super.onDestroy()
+    }
 
     private val userDataChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -120,19 +142,35 @@ class MainActivity : AppCompatActivity() {
                     val descTextField = dialogView.findViewById<EditText>(R.id.addChannelDescTxt)
                     val channelName = nameTextField.text.toString()
                     val channelDesc = descTextField.text.toString()
-//                    create channel with channel name and description
-                    hideKeyboard()
+//create channel with channel name and description
+                    socket.emit("newChannel", channelName, channelDesc)
                 }
                 .setNegativeButton("Cancel") { dialogInterface, i ->
                     // cancel and close the dialog
-                    hideKeyboard()
                 }
                 .show()
         }
     }
 
+    private val onNewChannel = Emitter.Listener { args ->
+
+        runOnUiThread {
+            val channelName = args[0] as String
+            val channelDescription = args[1] as String
+            val channelId = args[2] as String
+
+            val newChannel = Channel(channelName, channelDescription, channelId)
+            MessageService.channels.add(newChannel)
+
+            println(newChannel.name)
+            println(newChannel.description)
+            println(newChannel.id)
+        }
+    }
+
     fun sendMessageBtnClicked(view: View) {
 
+        hideKeyboard()
     }
 
     fun hideKeyboard() {
