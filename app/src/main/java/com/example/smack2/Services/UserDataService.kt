@@ -1,6 +1,7 @@
 package com.example.smack2.Services
 
 import android.graphics.Color
+import com.example.smack2.Controller.App
 import java.util.*
 
 object UserDataService {
@@ -17,9 +18,9 @@ object UserDataService {
         email = ""
         avatarColor = ""
         avatarColor = ""
-        AuthService.authToken = ""
-        AuthService.userEmail = ""
-        AuthService.isLoggedIn = false
+        App.prefs.authToken = ""
+        App.prefs.userEmail = ""
+        App.prefs.isLoggedIn = false
     }
 
     fun returnAvatarColor(components: String): Int {
