@@ -13,6 +13,7 @@ import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.findNavController
@@ -31,6 +32,7 @@ import com.google.android.material.navigation.NavigationView
 import io.socket.client.IO
 import io.socket.emitter.Emitter
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -38,6 +40,7 @@ class MainActivity : AppCompatActivity() {
 
     val socket = IO.socket(SOCKET_URL)
     lateinit var channelAdapter: ArrayAdapter<Channel>
+    var selectedChannel: Channel? = null
 
     private fun setupAdapters() {
         channelAdapter =
@@ -76,8 +79,15 @@ class MainActivity : AppCompatActivity() {
 
         setupAdapters()
 
-        if(App.prefs.isLoggedIn){
-            AuthService.findUserByEmail(this){}
+        if (App.prefs.isLoggedIn) {
+            AuthService.findUserByEmail(this) {}
+        }
+
+
+        channel_list.setOnItemClickListener { _, _, position, _ ->
+            selectedChannel = MessageService.channels[position]
+            drawerLayout.closeDrawer(GravityCompat.START)
+            updateWithChannel()
         }
 
     }
@@ -117,15 +127,25 @@ class MainActivity : AppCompatActivity() {
                 )
                 loginBtnNavHeader.text = "Logout"
 
-                MessageService.getChannels(context) { complete ->
+                MessageService.getChannels { complete ->
                     if (complete) {
-                        channelAdapter.notifyDataSetChanged()
+                        if (MessageService.channels.count() > 0) {
+                            selectedChannel = MessageService.channels[0]
+                            channelAdapter.notifyDataSetChanged()
+                            updateWithChannel()
+                        }
+
                     }
 
                 }
             }
 
         }
+    }
+
+    fun updateWithChannel() {
+        mainChannelName.text = "#${selectedChannel?.name}"
+//        download messages for channel
     }
 
 
@@ -157,7 +177,7 @@ class MainActivity : AppCompatActivity() {
             val dialogView = layoutInflater.inflate(R.layout.add_channel_dialog, null)
 
             builder.setView(dialogView)
-                .setPositiveButton("Add") { dialogInterface, i ->
+                .setPositiveButton("Add") { _, _ ->
                     //perform some logic when clicked
                     val nameTextField = dialogView.findViewById<EditText>(R.id.addChannelNameTxt)
                     val descTextField = dialogView.findViewById<EditText>(R.id.addChannelDescTxt)
@@ -166,7 +186,7 @@ class MainActivity : AppCompatActivity() {
 //create channel with channel name and description
                     socket.emit("newChannel", channelName, channelDesc)
                 }
-                .setNegativeButton("Cancel") { dialogInterface, i ->
+                .setNegativeButton("Cancel") { _, _ ->
                     // cancel and close the dialog
                 }
                 .show()
