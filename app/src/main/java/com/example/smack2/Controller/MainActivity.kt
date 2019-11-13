@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity() {
             UserDataService.logout()
             channelAdapter.notifyDataSetChanged()
             messageAdapter.notifyDataSetChanged()
-            
+
             userNameNavHeader.text = ""
             userEmailNavheader.text = ""
             userImageNavHeader.setImageResource(R.drawable.profiledefault)

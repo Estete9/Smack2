@@ -48,7 +48,7 @@ object AuthService {
         App.prefs.requestQueue.add(registerRequest)
     }
 
-    fun loginUser( email: String, password: String, complete: (Boolean) -> Unit) {
+    fun loginUser(email: String, password: String, complete: (Boolean) -> Unit) {
 
         val jsonBody = JSONObject()
         jsonBody.put("email", email)
@@ -62,7 +62,8 @@ object AuthService {
                     App.prefs.userEmail = response.getString("user")
                     App.prefs.authToken = response.getString("token")
                     App.prefs.isLoggedIn = true
-                    Log.d("ERROR", "couldn't log in email: $email, try again later")
+                    MessageService.clearChannels()
+                    MessageService.clearMessages()
                     complete(true)
 
                 } catch (e: JSONException) {
