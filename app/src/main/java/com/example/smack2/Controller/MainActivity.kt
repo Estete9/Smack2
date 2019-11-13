@@ -21,6 +21,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.smack2.Adapters.MessageAdapter
 import com.example.smack2.Model.Channel
 import com.example.smack2.Model.Message
 import com.example.smack2.R
@@ -41,12 +43,18 @@ class MainActivity : AppCompatActivity() {
 
     val socket = IO.socket(SOCKET_URL)
     lateinit var channelAdapter: ArrayAdapter<Channel>
+    lateinit var messageAdapter: MessageAdapter
     var selectedChannel: Channel? = null
 
     private fun setupAdapters() {
         channelAdapter =
             ArrayAdapter(this, android.R.layout.simple_list_item_1, MessageService.channels)
         channel_list.adapter = channelAdapter
+
+        messageAdapter = MessageAdapter(this, MessageService.messages)
+        messageListView.adapter = messageAdapter
+        val layoutManager = LinearLayoutManager(this)
+        messageListView.layoutManager = layoutManager
     }
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -150,8 +158,9 @@ class MainActivity : AppCompatActivity() {
         if (selectedChannel != null) {
             MessageService.getMessages(selectedChannel!!.id) { complete ->
                 if (complete) {
-                    for (message in MessageService.messages) {
-                        println(message.message)
+                    messageAdapter.notifyDataSetChanged()
+                    if (messageAdapter.itemCount > 0) {
+                        messageListView.smoothScrollToPosition(messageAdapter.itemCount - 1)
                     }
                 }
             }
@@ -168,6 +177,9 @@ class MainActivity : AppCompatActivity() {
         if (App.prefs.isLoggedIn) {
 //logged out
             UserDataService.logout()
+            channelAdapter.notifyDataSetChanged()
+            messageAdapter.notifyDataSetChanged()
+            
             userNameNavHeader.text = ""
             userEmailNavheader.text = ""
             userImageNavHeader.setImageResource(R.drawable.profiledefault)
@@ -246,6 +258,8 @@ class MainActivity : AppCompatActivity() {
                             timeStamp
                         )
                     MessageService.messages.add(newMessage)
+                    messageAdapter.notifyDataSetChanged()
+                    messageListView.smoothScrollToPosition(messageAdapter.itemCount - 1)
                 }
 
 
