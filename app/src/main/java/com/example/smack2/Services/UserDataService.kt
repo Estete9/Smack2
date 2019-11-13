@@ -23,7 +23,7 @@ object UserDataService {
         App.prefs.isLoggedIn = false
 
         MessageService.clearMessages()
-        MessageService.clearChannels()
+        MessageService. clearChannels()
     }
 
     fun returnAvatarColor(components: String): Int {

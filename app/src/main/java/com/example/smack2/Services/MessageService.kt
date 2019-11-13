@@ -66,7 +66,9 @@ object MessageService {
 
         val messagesRequest =
             object :
-                JsonArrayRequest(Method.GET, URL_GET_MESSAGES, null, Response.Listener { response ->
+                JsonArrayRequest(Method.GET, url, null, Response.Listener { response ->
+
+                    clearMessages()
 
                     try {
 
